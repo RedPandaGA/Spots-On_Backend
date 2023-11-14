@@ -77,6 +77,52 @@ app.listen(port, () => {
 });
 
 
+let colonies = [];
+
+app.post('/createColony', (req, res) => {
+    const { colonyName, isPrivateColony } = req.body;
+
+    // Here you can perform additional validation or processing as needed
+
+    const newColony = {
+        colonyName,
+        isPrivateColony,
+        // Add other properties as needed
+    };
+
+    colonies.push(newColony);
+
+    res.status(201).json({ message: 'Colony created successfully', colony: newColony });
+});
+
+app.get('/colonies', (req, res) => {
+    res.status(200).json({ colonies });
+});
+
+
+let colonies = [];
+
+app.post('/createColony', (req, res) => {
+    const { colonyName, isPrivateColony } = req.body;
+
+    // Here you can perform additional validation or processing as needed
+
+    const newColony = {
+        colonyName,
+        isPrivateColony,
+        // Add other properties as needed
+    };
+
+    colonies.push(newColony);
+
+    res.status(201).json({ message: 'Colony created successfully', colony: newColony });
+});
+
+app.get('/colonies', (req, res) => {
+    res.status(200).json({ colonies });
+});
+
+
 // Define API endpoint for user registration
 app.post("/api/signup", (req, res) => {
   const { email, password } = req.body;
