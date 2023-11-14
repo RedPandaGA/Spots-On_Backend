@@ -6,7 +6,7 @@ const app = express();
 const port = 3000;
 const cors = require("cors");
 
-
+// login authentication
 // In-memory storage for user data (replace with a real database)
 const users = [
   {
@@ -50,7 +50,7 @@ app.listen(port, () => {
 });
 
 
-
+//
 // Middleware for parsing JSON data
 app.use(bodyParser.json());
 
