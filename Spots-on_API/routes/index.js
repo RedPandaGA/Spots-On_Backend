@@ -4,6 +4,7 @@ const router = express.Router();
 const bodyParser = require('body-parser');
 const app = express();
 const port = 3000;
+const cors = require("cors");
 
 
 // In-memory storage for user data (replace with a real database)
@@ -18,6 +19,7 @@ const users = [
 let authenticatedUser = null; // Temporary storage for authenticated user (not recommended for production)
 
 app.use(bodyParser.json());
+app.use(cors());
 
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
@@ -74,5 +76,21 @@ app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
+
+// Define API endpoint for user registration
+app.post("/api/signup", (req, res) => {
+  const { email, password } = req.body;
+
+  // Check if the user already exists in the local array
+  const existingUser = users.find((user) => user.email === email);
+  if (existingUser) {
+    return res.status(400).json({ message: "User already exists" });
+  }
+
+  // Store user data in the local array
+  users.push({ email, password });
+
+  res.status(201).json({ message: "User registered successfully" });
+});
 
 module.exports = router;
