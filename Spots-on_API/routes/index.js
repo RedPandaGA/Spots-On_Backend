@@ -1,54 +1,93 @@
-const express = require('express');
-const bcrypt = require('bcrypt');
-const router = express.Router();
-const bodyParser = require('body-parser');
-const app = express();
-const port = 3000;
-const cors = require("cors");
+var express = require('express');
+var bcrypt = require('bcrypt');
+var router = express.Router();
+var bodyParser = require('body-parser');
+var app = express();
+var multer = require('multer');
+var upload = multer(); 
+var session = require('express-session');
+var cookieParser = require('cookie-parser');
+var cors = require("cors");
 
-// login authentication
-// In-memory storage for user data (replace with a real database)
-const users = [
-  {
-    username: 'testuser',
-    password: 'password123', // Store passwords securely in production
-  },
-  // Add more user objects here
-];
 
-let authenticatedUser = null; // Temporary storage for authenticated user (not recommended for production)
+app.set('view engine', 'pug');
+app.set('views','./views');
 
 app.use(bodyParser.json());
-app.use(cors());
+app.use(bodyParser.urlencoded({ extended: true })); 
+app.use(upload.array());
+app.use(cookieParser());
+app.use(session({secret: "Your secret key"}));
 
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
+var Users = [];
 
-  // Simulate user authentication
-  const user = users.find((user) => user.username === username && user.password === password);
-
-  if (user) {
-    // Store the authenticated user in a local variable (for testing only)
-    authenticatedUser = user;
-
-    res.status(200).json({ message: 'Login successful' });
-  } else {
-    res.status(401).json({ message: 'Invalid login credentials' });
-  }
+app.get('/signup', function(req, res){
+   res.render('signup');
 });
 
-app.get('/api/user-data', (req, res) => {
-  if (authenticatedUser) {
-    res.status(200).json({ username: authenticatedUser.username });
-  } else {
-    res.status(401).json({ message: 'Unauthorized' });
-  }
+app.post('/signup', function(req, res){
+   if(!req.body.id || !req.body.password){
+      res.status("400");
+      res.send("Invalid details!");
+   } else {
+      Users.filter(function(user){
+         if(user.id === req.body.id){
+            res.render('signup', {
+               message: "User Already Exists! Login or choose another user id"});
+         }
+      });
+      var newUser = {id: req.body.id, password: req.body.password};
+      Users.push(newUser);
+      req.session.user = newUser;
+      res.redirect('/protected_page');
+   }
+});
+function checkSignIn(req, res){
+   if(req.session.user){
+      next();     //If session exists, proceed to page
+   } else {
+      var err = new Error("Not logged in!");
+      console.log(req.session.user);
+      next(err);  //Error, trying to access unauthorized page!
+   }
+}
+app.get('/protected_page', checkSignIn, function(req, res){
+   res.render('protected_page', {id: req.session.user.id})
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+app.get('/login', function(req, res){
+   res.render('login');
 });
 
+app.post('/login', function(req, res){
+   console.log(Users);
+   if(!req.body.id || !req.body.password){
+      res.render('login', {message: "Please enter both id and password"});
+   } else {
+      Users.filter(function(user){
+         if(user.id === req.body.id && user.password === req.body.password){
+            req.session.user = user;
+            res.redirect('/protected_page');
+         }
+      });
+      res.render('login', {message: "Invalid credentials!"});
+   }
+});
+
+app.get('/logout', function(req, res){
+   req.session.destroy(function(){
+      console.log("user logged out.")
+   });
+   res.redirect('/login');
+});
+
+app.use('/protected_page', function(err, req, res, next){
+console.log(err);
+   //User should be authenticated! Redirect him to log in.
+   res.redirect('/login');
+});
+
+app.listen(3000);
 
 //
 // Middleware for parsing JSON data
@@ -105,21 +144,5 @@ app.get('/colonies', (req, res) => {
     res.status(200).json({ colonies });
 });
 
-// signup
-// Define API endpoint for user registration
-app.post("/api/signup", (req, res) => {
-  const { email, password } = req.body;
-
-  // Check if the user already exists in the local array
-  const existingUser = users.find((user) => user.email === email);
-  if (existingUser) {
-    return res.status(400).json({ message: "User already exists" });
-  }
-
-  // Store user data in the local array
-  users.push({ email, password });
-
-  res.status(201).json({ message: "User registered successfully" });
-});
 
 module.exports = router;
