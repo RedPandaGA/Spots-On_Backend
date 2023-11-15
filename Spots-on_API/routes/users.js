@@ -6,9 +6,7 @@ const path = require('path');
 const app = express();
 const port = 3000;
 
-
-
-
+// user account info page
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {

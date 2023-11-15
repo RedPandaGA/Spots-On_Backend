@@ -105,7 +105,7 @@ app.get('/colonies', (req, res) => {
     res.status(200).json({ colonies });
 });
 
-
+// signup
 // Define API endpoint for user registration
 app.post("/api/signup", (req, res) => {
   const { email, password } = req.body;
