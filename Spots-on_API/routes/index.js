@@ -24,17 +24,17 @@ var Users = [];
 // });
 
 app.post('/signup', function(req, res){
-   if(!req.body.id || !req.body.password){
+   if(!req.body.email || !req.body.password){
       res.status("400");
       res.send("Invalid details!");
    } else {
       Users.filter(function(user){
-         if(user.id === req.body.id){
+         if(user.email === req.body.email){
             res.render('signup', {
                message: "User Already Exists! Login or choose another email"});
          }
       });
-      var newUser = {id: req.body.id, password: req.body.password};
+      var newUser = {email: req.body.email, password: req.body.password};
       Users.push(newUser);
       req.session.user = newUser;
       res.redirect('/protected_page');
@@ -50,7 +50,7 @@ function checkSignIn(req, res){
    }
 }
 app.get('/protected_page', checkSignIn, function(req, res){
-   res.render('protected_page', {id: req.session.user.id})
+   res.render('protected_page', {email: req.session.user.email})
 });
 
 app.get('/login', function(req, res){
@@ -59,11 +59,11 @@ app.get('/login', function(req, res){
 
 app.post('/login', function(req, res){
    console.log(Users);
-   if(!req.body.id || !req.body.password){
-      res.render('login', {message: "Please enter both id and password"});
+   if(!req.body.email || !req.body.password){
+      res.render('login', {message: "Please enter both email and password"});
    } else {
       Users.filter(function(user){
-         if(user.id === req.body.id && user.password === req.body.password){
+         if(user.email === req.body.email && user.password === req.body.password){
             req.session.user = user;
             res.redirect('/protected_page');
          }
