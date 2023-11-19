@@ -5,6 +5,8 @@ const multer = require('multer');
 const path = require('path');
 const app = express();
 const port = 3000;
+const jwt = require("jsonwebtoken");
+
 
 // user account info page
 // Configure multer for file uploads
