@@ -19,10 +19,6 @@ app.use(session({secret: "Your secret key"}));
 
 var Users = [];
 
-// app.get('/signup', function(req, res){
-//    res.render('signup');
-// });
-
 app.post('/signup', function(req, res){
    if(!req.body.email || !req.body.password){
       res.status("400");
