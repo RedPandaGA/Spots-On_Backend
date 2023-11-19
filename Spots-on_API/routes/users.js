@@ -7,57 +7,90 @@ const app = express();
 const port = 3000;
 const jwt = require("jsonwebtoken");
 
+const bcrypt = require('bcrypt'); // Make sure to install the bcrypt package: npm install bcrypt
 
-// user account info page
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // The folder where uploaded files will be stored
-  },
-  filename: (req, file, cb) => {
-    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-  },
-});
+// Assuming you have the email, password, and phone number from the request body
+const { email, password, phoneNumber } = req.body;
 
-const upload = multer({ storage: storage });
+// Check if email, password, and phone number are present in the request body
+if (!email || !password || !phoneNumber) {
+  return res.status(400).json({ message: "Email, password, and phone number are required." });
+}
 
-// Middleware to parse JSON
-app.use(bodyParser.json());
+// Hash the password before storing it
+const hashedPassword = bcrypt.hashSync(password, 10);
 
-// Sample in-memory user data store
-const users = [];
+// Your JWT_SECRET should still be retrieved from the environment variable
+const JWT_SECRET = process.env.JWT_SECRET;
 
-// POST endpoint to store user data
-app.post('/users', upload.single('profilePicture'), (req, res) => {
-  // Extract data from the request body
-  const { name, phoneNumber, email, password, blockedUsers, premiumStatus } = req.body;
+// Create a payload with email, hashed password, and phone number
+const payload = {
+  email,
+  password: hashedPassword,
+  phoneNumber
+};
 
-  // Create a new user object
-  const newUser = {
-    name,
-    phoneNumber,
-    email,
-    password,
-    blockedUsers: blockedUsers || [], // Default to an empty array if not provided
-    premiumStatus: premiumStatus || false, // Default to false if not provided
-    profilePicture: req.file ? req.file.filename : null, // File upload, if a profile picture is provided
-  };
+// Sign the token with the payload and secret
+const token = jwt.sign(payload, JWT_SECRET);
 
-  // Store the user in the data store
-  users.push(newUser);
+return res.status(200).json({ message: "User Logged in Successfully", token });
 
-  // Respond with the newly created user
-  res.status(201).json(newUser);
-});
 
-// Start the server
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
-});
+
+
+
+
+// // user account info page
+// // Configure multer for file uploads
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, 'uploads/'); // The folder where uploaded files will be stored
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+//   },
+// });
+
+// const upload = multer({ storage: storage });
+
+// // Middleware to parse JSON
+// app.use(bodyParser.json());
+
+// // Sample in-memory user data store
+// const users = [];
+
+// // POST endpoint to store user data
+// app.post('/users', upload.single('profilePicture'), (req, res) => {
+//   // Extract data from the request body
+//   const { name, phoneNumber, email, password, blockedUsers, premiumStatus } = req.body;
+
+//   // Create a new user object
+//   const newUser = {
+//     name,
+//     phoneNumber,
+//     email,
+//     password,
+//     blockedUsers: blockedUsers || [], // Default to an empty array if not provided
+//     premiumStatus: premiumStatus || false, // Default to false if not provided
+//     profilePicture: req.file ? req.file.filename : null, // File upload, if a profile picture is provided
+//   };
+
+//   // Store the user in the data store
+//   users.push(newUser);
+
+//   // Respond with the newly created user
+//   res.status(201).json(newUser);
+// });
+
+// // Start the server
+// app.listen(port, () => {
+//   console.log(`Server is running on port ${port}`);
+// });
+
+// /* GET users listing. */
+// router.get('/', function(req, res, next) {
+//   res.send('respond with a resource');
+// });
 
 module.exports = router;
