@@ -7,14 +7,13 @@ const app = express();
 const port = 3000;
 const jwt = require("jsonwebtoken");
 
-const bcrypt = require('bcrypt'); // Make sure to install the bcrypt package: npm install bcrypt
+const bcrypt = require('bcrypt'); 
 
-// Assuming you have the email, password, and phone number from the request body
-const { email, password, phoneNumber } = req.body;
+const { userID, password, phoneNumber } = req.body;
 
 // Check if email, password, and phone number are present in the request body
-if (!email || !password || !phoneNumber) {
-  return res.status(400).json({ message: "Email, password, and phone number are required." });
+if (!userID || !password || !phoneNumber) {
+  return res.status(400).json({ message: "userID, password, and phone number are required." });
 }
 
 // Hash the password before storing it
@@ -25,7 +24,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 // Create a payload with email, hashed password, and phone number
 const payload = {
-  email,
+  userID,
   password: hashedPassword,
   phoneNumber
 };
