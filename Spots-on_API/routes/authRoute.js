@@ -164,9 +164,9 @@ authRouter.get('/allEventsOut24/:sentuid', async (req, res) => {
 
 //USER ROUTES
 
-authRouter.post('/createUser', async (req, res) => {
-    const { email, pass, pnum, nickname } = req.body;
-    await createEntity(req, res, 'user_data', 'email, pass, pnum, nickname', `'${email}', '${pass}', '${pnum}', '${nickname}'`);
-});
+// authRouter.post('/createUser', async (req, res) => {
+//     const { email, pass, pnum, nickname } = req.body;
+//     await createEntity(req, res, 'user_data', 'email, pass, pnum, nickname', `'${email}', '${pass}', '${pnum}', '${nickname}'`);
+// });
 
 module.exports = authRouter;

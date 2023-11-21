@@ -49,15 +49,14 @@ SELECT event_table.ename, event_table.eid, event_table.etime, event_table.locati
 SELECT sname, location, danger, cid, radius FROM spots_table WHERE cid='submittedcid';
 
 NAME:
-getPassword
-getUsersColonies
-getUsersInColony
-getUsersGroups
-getAllEventsIn24
-getAllEventsOut24
-getAllSpotsByColony
+UsersColonies
+UsersInColony
+UsersGroups
+AllEventsIn24
+AllEventsOut24
+AllSpotsByColony
 
-
+template:
 authRouter.get('/userName/:uid', async (req, res) => {
     const { uid } = req.params;
     
