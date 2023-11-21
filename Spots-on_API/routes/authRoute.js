@@ -1,6 +1,7 @@
 const express = require('express');
 const authRouter = express.Router();
 const { Pool } = require('pg');
+const jwt = require("jsonwebtoken");
 
 const pool = new Pool({
     user: 'apiuser',
@@ -10,11 +11,34 @@ const pool = new Pool({
     port: 5432, // Default PostgreSQL port
 });
 
-//PUT AUTH FUNC HERE
+//Auth Check for all routes below
+function authSessionCheck(req, res, next){
+    try {
+        const JWT_SECRET = process.env.JWT_SECRET;
 
-/*authRouter.post('/action', async (req, res) => {
+        const { authorization } = req.headers;
 
-});*/
+        if (!authorization) {
+            return res.status(401).json({ error: "Unauthorized: Missing token" });
+        }
+
+        const token = authorization.replace("Bearer ", "");
+
+        jwt.verify(token, JWT_SECRET, async (err, payload) => {
+            if (err) {
+                return res.status(401).json({ error: "Unauthorized: Invalid token" });
+            }
+            req.body.uid = payload.uid;
+            next();
+        });
+    } catch (err) {
+        console.error('Error executing query', err);
+        res.status(500).send('Internal Server Error');
+    }
+
+}
+
+authRouter.use(authSessionCheck);
 
 //GENERAL FUNCS
 const createEntity = async (req, res, tableName, columns, values) => {
@@ -164,9 +188,20 @@ authRouter.get('/allEventsOut24/:sentuid', async (req, res) => {
 
 //USER ROUTES
 
-// authRouter.post('/createUser', async (req, res) => {
-//     const { email, pass, pnum, nickname } = req.body;
-//     await createEntity(req, res, 'user_data', 'email, pass, pnum, nickname', `'${email}', '${pass}', '${pnum}', '${nickname}'`);
-// });
+authRouter.post('/updateUserLocation', async (req, res) => {
+    const { uid, location } = req.body;
+    try {
+        const client = await pool.connect();
+        const result = await client.query(`UPDATE user_data SET loc_history = array_prepend('${JSON.stringify(location)}', loc_history) WHERE uid='${uid}'`);
+        const dbres = result;
+
+        client.release();
+
+        res.status(200).json(dbres);
+    } catch (err) {
+        console.error('Error executing query', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
 
 module.exports = authRouter;
