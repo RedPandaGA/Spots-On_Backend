@@ -1,0 +1,106 @@
+--User Table:
+--Create User
+INSERT INTO user_data (email, pass, pnum, nickname) VALUES ('email', 'pass', 'pnum', 'firstpartofemail');
+--Get user's password
+SELECT pass FROM user_data WHERE pnum='pnum';
+
+--Colony Table:
+--Create new colony
+INSERT INTO colony_data (cname, owner) VALUES ('cname', 'owner');
+--Get all colonies a user is in
+SELECT colony_data.cname, colony_data.cid FROM colony_data INNER JOIN users_to_colony ON (colony_data.cid=users_to_colony.cid AND users_to_colony.uid='sentuid');
+--Get all people in the current colony
+SELECT user_data.nickname, user_data.uid, user_data.status, user_data.status_code, user_data.incognito, user_data.usersettings, user_data.loc_history, user_data.last_contact, user_data.picture FROM user_data INNER JOIN users_to_colony ON (users_to_colony.cid='sentcid' AND users_to_colony.uid=user_data.uid);
+--Need query to check if user is in colony
+
+--Group table:
+--Create group chat
+INSERT INTO group_chats (gname, owner) VALUES ('gname', 'uid');
+--Get all groups someone is in
+SELECT group_chats.gname, group_chats.gid, group_chats.picture FROM group_chats INNER JOIN users_to_group ON (group_chats.gid=users_to_group.gid AND users_to_group.uid='sentuid');
+
+--Event table:
+--Create Event
+INSERT INTO event_table (ename, etime, creator, cid, location_sid, description) VALUES ('ename', 'etime', 'uid', 'cid', 'sid', 'description');
+--Get all events within 24 hrs (inclusive)
+SELECT event_table.ename, event_table.eid, event_table.etime, event_table.location_sid FROM event_table INNER JOIN users_to_colony ON (event_table.cid=users_to_colony.cid AND users_to_colony.uid='sentuid' AND event_table.etime <= NOW() + INTERVAL '24 hours');
+--Get all Events Beyond 24 hrs
+SELECT event_table.ename, event_table.eid, event_table.etime, event_table.location_sid FROM event_table INNER JOIN users_to_colony ON (event_table.cid=users_to_colony.cid AND users_to_colony.uid='sentuid' AND event_table.etime > NOW() + INTERVAL '24 hours');
+
+--Spots table:
+--Create new spot
+INSERT INTO spots_table (sname, location, danger, cid, radius) VALUES ('sname', 'location', 'danger', 'cid', 'radius');
+--Get all spots for a selected colony
+SELECT sname, location, danger, cid, radius FROM spots_table WHERE cid='submittedcid';
+--Get all public spots
+--Will go back later (will be in a seperate table than private spots)
+
+--"email"	"pass"	"pnum"	"uid"	"usersettings"	"picture"	"friends"	"last_contact"	"loc_history"	"premium"	"status"	"status_code"	"incognito"	"nickname"
+--"test@test.com"	"testpass1"	"555-555-5555"	"bee5fc20-7c15-4348-8ce8-5640977b8222"	"{}"					false		0	false	"test"
+--"test2@test.com"	"testpass1"	"555-555-5555"	"14c5d633-4b6c-4287-8623-a6e72f28a011"	"{}"					false		0	false	"test2"
+
+SQLSTATEMENTS:
+SELECT pass FROM user_data WHERE pnum='pnum';
+SELECT colony_data.cname, colony_data.cid FROM colony_data INNER JOIN users_to_colony ON (colony_data.cid=users_to_colony.cid AND users_to_colony.uid='sentuid');
+SELECT user_data.nickname, user_data.uid, user_data.status, user_data.status_code, user_data.incognito, user_data.usersettings, user_data.loc_history, user_data.last_contact, user_data.picture FROM user_data INNER JOIN users_to_colony ON (users_to_colony.cid='sentcid' AND users_to_colony.uid=user_data.uid);
+SELECT group_chats.gname, group_chats.gid, group_chats.picture FROM group_chats INNER JOIN users_to_group ON (group_chats.gid=users_to_group.gid AND users_to_group.uid='sentuid');
+SELECT event_table.ename, event_table.eid, event_table.etime, event_table.location_sid FROM event_table INNER JOIN users_to_colony ON (event_table.cid=users_to_colony.cid AND users_to_colony.uid='sentuid' AND event_table.etime <= NOW() + INTERVAL '24 hours');
+SELECT event_table.ename, event_table.eid, event_table.etime, event_table.location_sid FROM event_table INNER JOIN users_to_colony ON (event_table.cid=users_to_colony.cid AND users_to_colony.uid='sentuid' AND event_table.etime > NOW() + INTERVAL '24 hours');
+SELECT sname, location, danger, cid, radius FROM spots_table WHERE cid='submittedcid';
+
+NAME:
+UsersColonies
+UsersInColony
+UsersGroups
+AllEventsIn24
+AllEventsOut24
+AllSpotsByColony
+
+template:
+authRouter.get('/userName/:uid', async (req, res) => {
+    const { uid } = req.params;
+    
+    try {
+        const client = await pool.connect();
+        const result = await client.query(`SQLSTATEMENT`);
+        const dbres = result.rows;
+
+        // Release the client back to the pool
+        client.release();
+
+        res.status(200).json(dbres);
+    } catch (err) {
+        console.error('Error executing query', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+SQLSTATEMENTS:
+INSERT INTO user_data (email, pass, pnum, nickname) VALUES ('email', 'pass', 'pnum', 'firstpartofemail');
+INSERT INTO group_chats (gname, owner) VALUES ('gname', 'uid');
+INSERT INTO event_table (ename, etime, creator, cid, location_sid, description) VALUES ('ename', 'etime', 'uid', 'cid', 'sid', 'description');
+INSERT INTO spots_table (sname, location, danger, cid, radius) VALUES ('sname', 'location', 'danger', 'cid', 'radius');
+
+NAME: 
+User
+Group
+Event
+Spots
+
+authRouter.post('/createName', async (req, res) => {
+    const {cname, owner} = req.body;
+
+    try {
+        const client = await pool.connect();
+        const result = await client.query(`SQLSTATEMENT`);
+        const dbres = result;
+
+        // Release the client back to the pool
+        client.release();
+
+        res.status(200).json({ success: `Name was created Successfully`, dbres: dbres});
+    } catch (err) {
+        console.error('Error executing query', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
