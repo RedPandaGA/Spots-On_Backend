@@ -1,6 +1,6 @@
 const express = require('express');
 const allRouter = express.Router();
-
+const jwt = require("jsonwebtoken");
 const { Pool } = require('pg');
 
 const pool = new Pool({
@@ -12,26 +12,30 @@ const pool = new Pool({
 });
 
 //GENERAL FUNCS
-const createEntity = async (req, res, tableName, columns, values) => {
-    try {
-      const client = await pool.connect();
-      const result = await client.query(`INSERT INTO ${tableName} (${columns}) VALUES (${values}) RETURNING *`);
-      const dbres = result.rows;
-  
-      client.release();
-  
-      res.status(200).json({ success: `${tableName} was created successfully`, dbres: dbres });
-    } catch (err) {
-      console.error('Error executing query', err);
-      res.status(500).send('Internal Server Error');
-    }
-};
 
 //USER ROUTES
 
 allRouter.post('/createUser', async (req, res) => {
     const { email, pass, pnum, nickname } = req.body;
-    await createEntity(req, res, 'user_data', 'email, pass, pnum, nickname', `'${email}', '${pass}', '${pnum}', '${nickname}'`);
+    try {
+        //Sec prep
+        const hashedPassword = bcrypt.hashSync(password, 12);
+        const JWT_SECRET = process.env.JWT_SECRET;
+
+        const client = await pool.connect();
+        const result = await client.query(`INSERT INTO user_data (email, pass, pnum, nickname) VALUES ('${email}', '${hashedPassword}', '${pnum}', '${nickname}') RETURNING uid`);
+        const dbres = result.rows;
+
+        console.log(dbres);
+        
+        
+        client.release();
+    
+        res.status(200).json({ success: `user_data was created successfully`, dbres: dbres });
+      } catch (err) {
+        console.error('Error executing query', err);
+        res.status(500).send('Internal Server Error');
+      }
 });
 
 module.exports = allRouter;
