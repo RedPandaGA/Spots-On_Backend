@@ -68,11 +68,11 @@ authRouter.get('/usersColonies/:sentuid', async (req, res) => {
 
     try {
         const client = await pool.connect();
-        const result = await client.query(`SELECT colony_data.cname, colony_data.cid FROM colony_data INNER JOIN users_to_colony ON (colony_data.cid=users_to_colony.cid AND users_to_colony.uid='${sentuid}')`);
+        const result = await client.query(`SELECT colony_data.cname AS name, colony_data.cid FROM colony_data INNER JOIN users_to_colony ON (colony_data.cid=users_to_colony.cid AND users_to_colony.uid='${sentuid}')`);
         const dbres = result.rows;
 
         client.release();
-
+        console.log(dbres);
         res.status(200).json(dbres);
     } catch (err) {
         console.error('Error executing query', err);
@@ -125,6 +125,8 @@ authRouter.get('/usersGroups/:sentuid', async (req, res) => {
 
 authRouter.post('/createSpot', async (req, res) => {
     const { sname, location, danger, cid, radius } = req.body;
+    console.log("req.body: " + JSON.stringify(req.body));
+    console.log("location: " + location);
     await createEntity(req, res, 'spots_table', 'sname, location, danger, cid, radius', `'${sname}', '${JSON.stringify(location)}', '${danger}', '${cid}', '${radius}'`);
 });
 
@@ -133,7 +135,7 @@ authRouter.get('/allSpotsByColony/:submittedcid', async (req, res) => {
 
     try {
         const client = await pool.connect();
-        const result = await client.query(`SELECT sname, location, danger, cid, radius FROM spots_table WHERE cid='${submittedcid}'`);
+        const result = await client.query(`SELECT sname AS name, location AS coordinate, danger AS safe, cid AS colonyName, radius FROM spots_table WHERE cid='${submittedcid}'`);
         const dbres = result.rows;
 
         client.release();
@@ -191,6 +193,7 @@ authRouter.get('/allEventsOut24/:sentuid', async (req, res) => {
 authRouter.post('/updateUserLocation', async (req, res) => {
     const { uid, location } = req.body;
     try {
+        console.log(location);
         const client = await pool.connect();
         const result = await client.query(`UPDATE user_data SET loc_history = array_prepend('${JSON.stringify(location)}', loc_history) WHERE uid='${uid}'`);
         const dbres = result;
