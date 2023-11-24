@@ -59,8 +59,9 @@ const createEntity = async (req, res, tableName, columns, values) => {
 //COLONY ROUTES
 
 authRouter.post('/createColony', async (req, res) => {
-    const { cname, owner } = req.body;
-    await createEntity(req, res, 'colony_data', 'cname, owner', `'${cname}', '${owner}'`);
+    const { cname, uid } = req.body;
+    console.log("req.body: " + JSON.stringify(req.body));
+    await createEntity(req, res, 'colony_data', 'cname, owner', `'${cname}', '${uid}'`);
 });
 
 authRouter.get('/usersColonies/:sentuid', async (req, res) => {
