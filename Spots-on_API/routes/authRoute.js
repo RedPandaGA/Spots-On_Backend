@@ -208,4 +208,21 @@ authRouter.post('/updateUserLocation', async (req, res) => {
     }
 });
 
+authRouter.post('/updateIncog', async (req, res) => {
+    const { uid,  } = req.body;
+    try {
+        // console.log(location);
+        // const client = await pool.connect();
+        // const result = await client.query(`UPDATE user_data SET loc_history = array_prepend('${JSON.stringify(location)}', loc_history) WHERE uid='${uid}'`);
+        // const dbres = result;
+        dbres = { success: "Updated Incog"}
+        // client.release();
+
+        res.status(200).json(dbres);
+    } catch (err) {
+        console.error('Error executing query', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 module.exports = authRouter;
