@@ -64,6 +64,22 @@ authRouter.post('/createColony', async (req, res) => {
     await createEntity(req, res, 'colony_data', 'cname, owner', `'${cname}', '${uid}'`);
 });
 
+authRouter.post('/joinColony', async (req, res) => {
+    const { uid, invite } = req.body;
+    try {
+        console.log("invite: " + invite + " uid: " + uid);
+        const client = await pool.connect();
+        const colonyToJoin = await client.query(`SELECT cid FROM colony_data WHERE invite='${invite}'`);
+        const result = await client.query(`INSERT INTO users_to_colony (uid, cid) VALUES ('${uid}','${colonyToJoin.rows[0].cid}') RETURNING *`);
+        client.release();
+        //console.log(result)
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Error executing query', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 authRouter.get('/usersColonies/:sentuid', async (req, res) => {
     const { sentuid } = req.params;
 
@@ -209,7 +225,7 @@ authRouter.post('/updateUserLocation', async (req, res) => {
 });
 
 authRouter.post('/updateIncog', async (req, res) => {
-    const { uid,  } = req.body;
+    const { uid, incog } = req.body;
     try {
         // console.log(location);
         // const client = await pool.connect();
