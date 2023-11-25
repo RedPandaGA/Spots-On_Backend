@@ -116,19 +116,27 @@ authRouter.get('/usersColonies/:sentuid', async (req, res) => {
 
 authRouter.get('/usersInColony/:sentcid', async (req, res) => {
     const { sentcid } = req.params;
-
-    try {
-        const client = await pool.connect();
-        const result = await client.query(`SELECT user_data.nickname, user_data.uid, user_data.status, user_data.status_code, user_data.incognito, user_data.usersettings, user_data.loc_history, user_data.last_contact, user_data.picture FROM user_data INNER JOIN users_to_colony ON (users_to_colony.cid='${sentcid}' AND users_to_colony.uid=user_data.uid)`);
-        const dbres = result.rows;
-
-        client.release();
-
-        res.status(200).json(dbres);
-    } catch (err) {
-        console.error('Error executing query', err);
-        res.status(500).send('Internal Server Error');
-    }
+    if(sentcid != "undefined"){
+        try {
+            const client = await pool.connect();
+            const result = await client.query(`SELECT user_data.nickname, user_data.uid, user_data.status, user_data.status_code, user_data.incognito, user_data.usersettings, user_data.loc_history, user_data.last_contact, user_data.picture FROM user_data INNER JOIN users_to_colony ON (users_to_colony.cid='${sentcid}' AND users_to_colony.uid=user_data.uid)`);
+            var dbres = result.rows;
+            console.log(dbres)
+            dbres = dbres.filter(user => !(user.uid == req.body.uid));
+            dbres = dbres.filter(user => !user.incognito);
+            console.log(dbres)
+            //More code to handle a user's privacy settings (so remove things if this was requested by someone they have to never share location with).
+    
+            client.release();
+    
+            res.status(200).json(dbres);
+        } catch (err) {
+            console.error('Error executing query', err);
+            res.status(500).send('Internal Server Error');
+        }
+    } else {
+        res.status(500).send('No cid sent');
+    } 
 });
 
 //GROUP ROUTES
