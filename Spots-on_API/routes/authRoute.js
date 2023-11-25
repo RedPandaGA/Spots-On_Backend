@@ -80,12 +80,29 @@ authRouter.post('/joinColony', async (req, res) => {
     }
 });
 
+authRouter.get('/getNumMems/:sentcid', async (req, res) => {
+    const { sentcid } = req.params;
+
+    try {
+        const client = await pool.connect();
+        const result = await client.query(`SELECT COUNT(*) AS row_count FROM users_to_colony WHERE cid = '${sentcid}';`);
+        const dbres = result.rows[0].row_count;
+
+        client.release();
+        console.log(dbres);
+        res.status(200).json({number: dbres});
+    } catch (err) {
+        console.error('Error executing query', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 authRouter.get('/usersColonies/:sentuid', async (req, res) => {
     const { sentuid } = req.params;
 
     try {
         const client = await pool.connect();
-        const result = await client.query(`SELECT colony_data.cname AS name, colony_data.cid FROM colony_data INNER JOIN users_to_colony ON (colony_data.cid=users_to_colony.cid AND users_to_colony.uid='${sentuid}')`);
+        const result = await client.query(`SELECT colony_data.cname AS name, colony_data.cid, colony_data.invite FROM colony_data INNER JOIN users_to_colony ON (colony_data.cid=users_to_colony.cid AND users_to_colony.uid='${sentuid}')`);
         const dbres = result.rows;
 
         client.release();
