@@ -177,7 +177,7 @@ authRouter.get('/allSpotsByColony/:submittedcid', async (req, res) => {
 
     try {
         const client = await pool.connect();
-        const result = await client.query(`SELECT sname AS name, location AS coordinate, danger AS safe, cid AS colonyName, radius FROM spots_table WHERE cid='${submittedcid}'`);
+        const result = await client.query(`SELECT st.sname AS name, st.location AS coordinate, st.danger AS safe, cd.cname AS "colonyName", st.radius, st.sid AS id FROM spots_table st JOIN colony_data cd ON st.cid = cd.cid WHERE st.cid = '${submittedcid}';`);
         const dbres = result.rows;
 
         client.release();
@@ -252,18 +252,72 @@ authRouter.post('/updateUserLocation', async (req, res) => {
 authRouter.post('/updateIncog', async (req, res) => {
     const { uid, incog } = req.body;
     try {
-        // console.log(location);
-        // const client = await pool.connect();
-        // const result = await client.query(`UPDATE user_data SET loc_history = array_prepend('${JSON.stringify(location)}', loc_history) WHERE uid='${uid}'`);
-        // const dbres = result;
-        dbres = { success: "Updated Incog"}
-        // client.release();
+        const client = await pool.connect();
+        const result = await client.query(`UPDATE user_data SET incognito = '${!incog}' WHERE uid='${uid}'`);
+        const dbres = { success: incog, result: result};
+        console.log(incog);
+        
+        client.release();
 
         res.status(200).json(dbres);
     } catch (err) {
         console.error('Error executing query', err);
         res.status(500).send('Internal Server Error');
     }
+});
+
+authRouter.post('/updateStatusCode', async (req, res) => {
+    const { uid, status, statusCode } = req.body;
+    try {
+      console.log('Received request to update status code:', statusCode);
+  
+      // Uncomment the following lines to update the status in the database
+      const client = await pool.connect();
+      const result = await client.query(`UPDATE user_data SET status = '${status}', status_code = '${statusCode}' WHERE uid='${uid}'`);
+      const dbres = result.rows; // Assuming you want to send the result back to the client
+      client.release();
+  
+      // Log the success message
+      console.log('User status updated successfully:');
+  
+      // Send a response back to the client
+      res.status(200).json({aaaa: "aaaaa"});
+    } catch (err) {
+      // Log the error
+      console.error('Error executing query', err);
+  
+      // Send an error response back to the client
+      res.status(500).send('Internal Server Error');
+    }
+  });
+
+authRouter.get('/getUserInfo/:sentuid', async (req, res) => {
+    const { sentuid } = req.params;
+    if(sentuid != "undefined"){
+        try {
+            const client = await pool.connect();
+            const result = await client.query(`SELECT pass, uid, nickname, status, status_code, incognito, usersettings, emergency, premium, loc_history FROM user_data WHERE uid='${sentuid}'`);
+
+    
+            client.release();
+            //currentLocation: result.rows[0].loc_history[0]
+            res.status(200).json({user: { nickname: result.rows[0].nickname,  
+                                                uid: result.rows[0].uid,
+                                                status: result.rows[0].status,
+                                                statusCode: result.rows[0].status_code,
+                                                incognito: result.rows[0].incognito,
+                                                userSettings: result.rows[0].incognito,
+                                                emergency: result.rows[0].emergency,
+                                                premium: result.rows[0].premium,
+                                        }
+        });
+        } catch (err) {
+            console.error('Error executing query', err);
+            res.status(500).send('Internal Server Error');
+        }
+    } else {
+        res.status(500).send('No cid sent');
+    } 
 });
 
 module.exports = authRouter;
