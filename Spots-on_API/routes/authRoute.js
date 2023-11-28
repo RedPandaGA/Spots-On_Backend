@@ -189,6 +189,40 @@ authRouter.get('/allSpotsByColony/:submittedcid', async (req, res) => {
     }
 });
 
+authRouter.post('/updateSpot', async (req, res) => {
+    const { name, coordinate, safe, radius, id } = req.body;
+    try {
+        console.log(req.body);
+        const client = await pool.connect();
+        const result = await client.query(`UPDATE spots_table SET sname='${name}', location='${JSON.stringify(coordinate)}', danger='${safe}', radius='${radius}' WHERE sid='${id}'`);
+        const dbres = result;
+
+        client.release();
+
+        res.status(200).json(dbres);
+    } catch (err) {
+        console.error('Error executing query', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+authRouter.get('/deleteSpot/:submittedsid', async (req, res) => {
+    const { submittedsid } = req.params;
+
+    try {
+        const client = await pool.connect();
+        const result = await client.query(`DELETE FROM spots_table WHERE sid='${submittedsid}';`);
+        const dbres = result.rows;
+
+        client.release();
+
+        res.status(200).json(dbres);
+    } catch (err) {
+        console.error('Error executing query', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 //EVENTS ROUTES
 
 authRouter.post('/createEvent', async (req, res) => {
