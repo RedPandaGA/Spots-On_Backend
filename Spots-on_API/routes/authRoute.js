@@ -102,7 +102,7 @@ authRouter.get('/usersColonies/:sentuid', async (req, res) => {
 
     try {
         const client = await pool.connect();
-        const result = await client.query(`SELECT colony_data.cname AS name, colony_data.cid, colony_data.invite FROM colony_data INNER JOIN users_to_colony ON (colony_data.cid=users_to_colony.cid AND users_to_colony.uid='${sentuid}')`);
+        const result = await client.query(`SELECT colony_data.cname AS name, colony_data.cid, colony_data.invite, colony_data.gid FROM colony_data INNER JOIN users_to_colony ON (colony_data.cid=users_to_colony.cid AND users_to_colony.uid='${sentuid}')`);
         const dbres = result.rows;
 
         client.release();
@@ -163,6 +163,40 @@ authRouter.get('/usersGroups/:sentuid', async (req, res) => {
     }
 });
 
+authRouter.get('/getmessages/:sentgid', async (req, res) => {
+    const { sentgid } = req.params;
+
+    try {
+        const client = await pool.connect();
+        const result = await client.query(`SELECT messages FROM group_chats WHERE gid='${sentgid}'`);
+        const dbres = result.rows[0];
+
+        client.release();
+
+        res.status(200).json(dbres);
+    } catch (err) {
+        console.error('Error executing query', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+authRouter.post('/sendmessage', async (req, res) => {
+    const { uid, gid, message } = req.body;
+    console.log(message);
+    try {
+        const client = await pool.connect();
+        const result = await client.query(`UPDATE group_chats SET messages = messages || '${JSON.stringify(message)}'::jsonb WHERE gid='${gid}';`);
+        const dbres = result.rows;
+
+        client.release();
+
+        res.status(200).json(dbres);
+    } catch (err) {
+        console.error('Error executing query', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 //SPOTS ROUTES
 
 authRouter.post('/createSpot', async (req, res) => {
@@ -179,6 +213,23 @@ authRouter.get('/allSpotsByColony/:submittedcid', async (req, res) => {
         const client = await pool.connect();
         const result = await client.query(`SELECT st.sname AS name, st.location AS coordinate, st.danger AS safe, cd.cname AS "colonyName", st.radius, st.sid AS id FROM spots_table st JOIN colony_data cd ON st.cid = cd.cid WHERE st.cid = '${submittedcid}';`);
         const dbres = result.rows;
+
+        client.release();
+
+        res.status(200).json(dbres);
+    } catch (err) {
+        console.error('Error executing query', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+authRouter.get('/getSpot/:submittedsid', async (req, res) => {
+    const { submittedsid } = req.params;
+
+    try {
+        const client = await pool.connect();
+        const result = await client.query(`SELECT * FROM spots_table WHERE sid='${submittedsid}'`);
+        const dbres = result.rows[0];
 
         client.release();
 
