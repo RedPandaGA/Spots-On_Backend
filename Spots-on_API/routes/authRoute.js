@@ -226,8 +226,8 @@ authRouter.get('/deleteSpot/:submittedsid', async (req, res) => {
 //EVENTS ROUTES
 
 authRouter.post('/createEvent', async (req, res) => {
-    const { ename, etime, creator, cid, location_sid, description } = req.body;
-    await createEntity(req, res, 'event_table', 'ename, etime, creator, cid, location_sid, description', `'${ename}', '${etime}', '${creator}', '${cid}', '${location_sid}', '${description}'`);
+    const { ename, etime, creator, cid, location_sid, description, address } = req.body;
+    await createEntity(req, res, 'event_table', 'ename, etime, creator, cid, location_sid, description, address, location_name', `'${ename}', '${etime}', '${creator}', '${cid}', '${location_sid}', '${description}', '${address}'`);
 });
 
 authRouter.get('/allEventsIn24/:sentuid', async (req, res) => {
@@ -235,7 +235,7 @@ authRouter.get('/allEventsIn24/:sentuid', async (req, res) => {
 
     try {
         const client = await pool.connect();
-        const result = await client.query(`SELECT event_table.ename, event_table.eid, event_table.etime, event_table.location_sid FROM event_table INNER JOIN users_to_colony ON (event_table.cid=users_to_colony.cid AND users_to_colony.uid='${sentuid}' AND event_table.etime <= NOW() + INTERVAL '24 hours')`);
+        const result = await client.query(`SELECT event_table.ename AS name, event_table.eid, event_table.etime AS dateTime, event_table.location_sid, event_table.description, event_table.address FROM event_table INNER JOIN users_to_colony ON (event_table.cid=users_to_colony.cid AND users_to_colony.uid='${sentuid}' AND event_table.etime <= NOW() + INTERVAL '24 hours')`);
         const dbres = result.rows;
 
         client.release();
@@ -252,7 +252,7 @@ authRouter.get('/allEventsOut24/:sentuid', async (req, res) => {
 
     try {
         const client = await pool.connect();
-        const result = await client.query(`SELECT event_table.ename, event_table.eid, event_table.etime, event_table.location_sid FROM event_table INNER JOIN users_to_colony ON (event_table.cid=users_to_colony.cid AND users_to_colony.uid='${sentuid}' AND event_table.etime > NOW() + INTERVAL '24 hours')`);
+        const result = await client.query(`SELECT event_table.ename AS name, event_table.eid, event_table.etime AS "dateTime", event_table.location_sid, event_table.description, event_table.address FROM event_table INNER JOIN users_to_colony ON (event_table.cid=users_to_colony.cid AND users_to_colony.uid='${sentuid}' AND event_table.etime > NOW() + INTERVAL '24 hours')`);
         const dbres = result.rows;
 
         client.release();
