@@ -227,7 +227,7 @@ authRouter.get('/deleteSpot/:submittedsid', async (req, res) => {
 
 authRouter.post('/createEvent', async (req, res) => {
     const { ename, etime, creator, cid, location_sid, description, address } = req.body;
-    await createEntity(req, res, 'event_table', 'ename, etime, creator, cid, location_sid, description, address, location_name', `'${ename}', '${etime}', '${creator}', '${cid}', '${location_sid}', '${description}', '${address}'`);
+    await createEntity(req, res, 'event_table', 'ename, etime, creator, cid, location_sid, description, address', `'${ename}', '${etime}', '${creator}', '${cid}', '${location_sid}', '${description}', '${address}'`);
 });
 
 authRouter.get('/allEventsIn24/:sentuid', async (req, res) => {
